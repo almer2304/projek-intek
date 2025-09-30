@@ -15,7 +15,7 @@ class BookController extends Controller
     {
         $books = Book::all();
 
-        return view('books.index', compact('books'));
+        return view('admin.index', compact('books'));
     }
 
     /**
@@ -123,7 +123,7 @@ class BookController extends Controller
         $book = Book::findOrFail($id);
         $book->update($request->all());
 
-        return redirect()->route('books.index')->with('success', 'Buku berhasil diperbarui.');
+        return redirect()->route('admin.dashboard')->with('success', 'Buku berhasil diperbarui.');
     }
 
     /**
@@ -136,4 +136,28 @@ class BookController extends Controller
 
         return redirect()->route('books.index')->with('success', 'Buku berhasil dihapus.');
     }
+
+    // masih harus diperbaiki
+    public function syncBooksFromApi()
+    {
+        $response = Http::get('https://www.googleapis.com/books/v1/volumes?q=laravel');
+        $books = $response->json();
+
+        if (!isset($books['items'])) {
+            return "Tidak ada data buku ditemukan.";
+        }
+
+        foreach ($books['items'] as $bookData) {
+            Book::updateOrCreate(
+                ['external_id' => $bookData['id']],
+                [
+                    'title' => $bookData['volumeInfo']['title'] ?? 'Untitled',
+                    'author' => $bookData['volumeInfo']['authors'][0] ?? 'Unknown',
+                ]
+            );
+        }
+
+        return "Sinkronisasi selesai!";
+    }
+
 }

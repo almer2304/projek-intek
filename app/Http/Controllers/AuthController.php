@@ -9,72 +9,68 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function showlogin(Request $request)
+    // Tampilkan form login
+    public function showlogin()
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        return view('auth.login');
+    }
 
-        if ($request->email === 'admin' && $request->password === '2304') {
-            return redirect()->route('books.index')->with('success', 'Welcome Admin!');
-        }   
+    // Proses login
+    public function login(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
 
-    // Jika bukan admin, cek ke database
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $request->session()->regenerate();
-            return redirect()->route('user.dashboard')->with('success', 'Login berhasil!');
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            // Cek apakah dia admin
+            if ($user->email === 'admin@gmail.com' && Hash::check('230418', $user->password)) {
+                return redirect()->route('admin.dashboard'); // books dashboard
+            }
+
+            // Kalau bukan admin
+            return redirect()->route('user.dashboard');
         }
 
         return back()->withErrors([
-            'email' => 'Email atau password salah.',
+            'email' => 'Email atau password salah!',
         ]);
     }
-    public function login(Request $request)
-    {
-        $credentials = $request->only("email","password");
 
-        if(Auth::attempt($credentials)) {
-            $user = Auth::user();  
-            if($user->role == 'admin') {
-                return redirect()->route('admin.dashboard');
-            } elseif($user->role == 'user') {
-                return redirect()->route('user.dashboard');
-            }
-        }
-        return back()->withErrors(['email' => 'email atau password salah']);
-    }
-    public function showRegister(Request $request)
+    // Tampilkan form register
+    public function showRegister()
     {
-        return view("auth.register");
-    }   
-    public function Register(Request $request)
+        return view('auth.register');
+    }
+
+    // Proses registrasi
+    public function register(Request $request)
     {
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed',
+            'password' => 'required|min:6|confirmed'
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user', // Default role
+            'role' => 'user',
         ]);
 
-        Auth::login($user);
+        // Otomatis login atau redirect ke login page
+        // Auth::login($user);
+        return redirect()->route('auth.showlogin')->with('success', 'Registrasi berhasil, silakan masuk.');
+    }
 
-        return redirect('/auth/login')->with('success', 'Registrasi berhasil, silakan masuk.');
-    }   
+    // Logout
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return view('/login');
-
+        return redirect()->route('auth.showlogin');
     }
 }

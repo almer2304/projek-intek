@@ -71,7 +71,18 @@
                     <div class="card-body">
                         <h5 class="card-title">🗑️ Hapus Buku</h5>
                         <p class="text-muted">Hapus data buku dari database.</p>
-                        <a href="{{ route('books.index') }}" class="btn btn-danger">Hapus</a>
+                        <a href="{{ route('admin.dashboard') }}" class="btn btn-danger">Hapus</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sinkronisasi Buku -->
+             <div class="col-md-3">
+                <div class="card card-custom h-100 text-center p-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Tes</h5>
+                        <p class="text-muted">Sinkronisasi api</p>
+                        <a href="{{ route('books.sync') }}" class="btn btn-primary mb-3">Sync Buku dari API</a>
                     </div>
                 </div>
             </div>
